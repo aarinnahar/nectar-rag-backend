@@ -27,21 +27,18 @@ logger = logging.getLogger("app")
 # FAST-EMBED WRAPPER (ONNX Drop-in Replacement for SentenceTransformer)
 # ==============================================================================
 class FastEmbedWrapper:
-    """
-    Acts exactly like a SentenceTransformer to downstream metric functions,
-    but runs on the ultra-lightweight ONNX C++ runtime to save RAM.
-    """
-    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5",threads=1):
-        self.model = get_shared_embedder() 
+    """Acts like a SentenceTransformer, but strictly reuses the single model in RAM."""
+    def __init__(self):
+        # Grab the singleton instead of creating a brand new model
+        self.embedder = get_shared_embedder()
 
     def encode(self, texts: Union[str, List[str]], **kwargs) -> np.ndarray:
-        # FastEmbed requires a list of strings
         if isinstance(texts, str):
             texts = [texts]
         
-        # model.embed returns a generator, so we immediately convert it to a 2D numpy array
-        # This matches PyTorch's output format perfectly for your downstream math
-        embeddings = list(self.model.embed(texts))
+        # LangChain's embedder returns a list of lists.
+        # Convert it to a numpy array to match your downstream metrics perfectly.
+        embeddings = self.embedder.embed_documents(texts)
         return np.array(embeddings, dtype=np.float32)
 
 
@@ -106,7 +103,7 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
     comprehensive aggregated evaluation scores.
     """
     # LAZY LOAD: Initialize the wrapper strictly inside the node
-    local_embedder = FastEmbedWrapper("BAAI/bge-small-en-v1.5")
+    local_embedder = FastEmbedWrapper()
     retrieved_chunks_by_strategy = state.get("retrieved_chunks", {})
     vectorstores = state.get("vectorstore", {})
     chunk_factory = state.get("chunk_factory", {})
