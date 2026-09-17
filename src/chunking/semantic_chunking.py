@@ -28,12 +28,14 @@ def robust_clean(raw_text):
     clean_text = re.sub(r'\s+', ' ', clean_text).strip()
     return clean_text
 
-def get_embeddings_in_batches(texts: list[str], batch_size: int = 32) -> np.ndarray:
+def get_embeddings_in_batches(texts: list[str], batch_size: int = 4) -> np.ndarray:
+    """Processes embeddings in micro-chunks to prevent RAM spikes."""
     embedder = get_shared_embedder()
     all_embeddings = []
     
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
+        # FastEmbed returns a generator, so we wrap it in list()
         batch_vecs = list(embedder.embed_documents(batch))
         all_embeddings.extend(batch_vecs)
         
