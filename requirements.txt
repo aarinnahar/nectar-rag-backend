@@ -21,3 +21,4 @@ scikit-learn
 tiktoken
 langchain_groq
 langchain_ollama
+langchain_openai
