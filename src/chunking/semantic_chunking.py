@@ -17,13 +17,6 @@ logger = logging.getLogger("app")
 # GLOBAL INITIALIZATIONS (Runs only once when the server starts)
 # ===================================================================
 
-# 1. OPTIMIZATION: Initialize FastEmbed globally. 
-# Runs natively on the C++ ONNX Runtime taking < 150MB of RAM.
-# FastEmbed automatically optimizes threads and batching under the hood.
-global_embedding_model = FastEmbedEmbeddings(
-    model_name="BAAI/bge-small-en-v1.5"
-)
-
 # 2. OPTIMIZATION: Strip out heavy NLP tasks. 
 # We disable everything except 'senter' (the lightning-fast sentence segmenter)
 nlp = spacy.load("en_core_web_sm", disable=["tagger", "parser", "ner", "lemmatizer", "textcat", "attribute_ruler"])
@@ -49,27 +42,31 @@ def semantic_chunking_pro(texts, window_size=3, percentile=10):
     if len(sentences) < window_size:
         return [" ".join(sentences)]
 
-    # 2. Batch Embedding (Now utilizes the FastEmbed ONNX model)
+    # 2. LAZY LOAD: Initialize model here so it gets destroyed after chunking
+    from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+    embedding_model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+    
+    # 3. Batch Embedding (Now utilizes the FastEmbed ONNX model)
     # Cast to a list first to ensure compatibility with LangChain's generator returns, then to numpy
-    vectors = np.array(list(global_embedding_model.embed_documents(sentences)))
+    vectors = np.array(list(embedding_model.embed_documents(sentences)))
 
-    # 3. Sliding Window Means 
+    # 4. Sliding Window Means 
     windows = sliding_window_view(vectors, window_shape=(window_size,), axis=0)
     mean_vectors = windows.mean(axis=1)
 
-    # 4. OPTIMIZATION: Vectorized Cosine Similarity (The for-loop is gone!)
+    # 5. OPTIMIZATION: Vectorized Cosine Similarity (The for-loop is gone!)
     # This computes the similarity matrix in C instantly, then grabs the adjacent pairs
     sim_matrix = cosine_similarity(mean_vectors)
     similarities = np.diagonal(sim_matrix, offset=1)
 
-    # 5. Thresholding
+    # 6. Thresholding
     threshold = np.percentile(similarities, percentile)
     
-    # 6. Find Breakpoints
+    # 7. Find Breakpoints
     offset = window_size // 2
     breakpoints = [i + offset for i, s in enumerate(similarities) if s <= threshold]
 
-    # 7. Slicing
+    # 8. Slicing
     chunks = []
     start_idx = 0
     for bp in breakpoints:
