@@ -4,9 +4,6 @@ import logging
 import numpy as np
 from typing import Dict, Any, List, Union
 
-# 1. IMPORT FASTEMBED (Replacing PyTorch-heavy SentenceTransformer)
-from fastembed import TextEmbedding
-
 from src.orchestration.agent_state import AgentState
 from src.utils.save_state import save_state
 
@@ -20,6 +17,8 @@ from src.evaluation.metrics.compute_avg_vector_search_latency_ms import compute_
 from src.evaluation.metrics.compute_total_ingestion_time_s import compute_total_ingestion_time_s
 from src.evaluation.metrics.compute_projected_costs import compute_projected_costs
 from src.evaluation.metrics.compute_system_grade import compute_system_grade
+from src.embed_and_store.shared_embedder import get_shared_embedder
+
 
 logger = logging.getLogger("app")
 
@@ -33,7 +32,7 @@ class FastEmbedWrapper:
     but runs on the ultra-lightweight ONNX C++ runtime to save RAM.
     """
     def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5",threads=1):
-        self.model = TextEmbedding(model_name=model_name)
+        self.model = get_shared_embedder() 
 
     def encode(self, texts: Union[str, List[str]], **kwargs) -> np.ndarray:
         # FastEmbed requires a list of strings
