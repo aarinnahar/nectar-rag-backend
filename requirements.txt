@@ -23,3 +23,13 @@ langchain_groq
 langchain_ollama
 langchain_openai
 pandas
+Jinja2
+langchain_huggingface
+langchain_text_splitters
+numpy
+Pillow
+plotly
+pydantic_settings
+pytest
+python-dotenv
+
