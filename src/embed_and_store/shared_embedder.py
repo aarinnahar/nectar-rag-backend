@@ -10,6 +10,6 @@ def get_shared_embedder():
         _SHARED_EMBEDDER = FastEmbedEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
             threads=1,
-            max_length=512
+            batch_size=4
         )
     return _SHARED_EMBEDDER
