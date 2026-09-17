@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import logging
 from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.metrics.pairwise import cosine_similarity
-
+from src.utils.release_memory import release_system_memory
 from src.config.settings import Settings
 from src.embed_and_store.shared_embedder import get_shared_embedder
 
