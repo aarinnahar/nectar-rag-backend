@@ -58,35 +58,23 @@ def build_single_vectorstore(strategy, chunks, model):
 
 
 async def embed_and_store(state: AgentState) -> dict:
-    """
-    Asynchronous LangGraph node that builds multiple FAISS databases concurrently.
-    Now optimized for 512MB RAM cloud tiers.
-    """
-    # 2. INSTANTIATE FASTEMBED DIRECTLY
-    # This model is quantized to INT8, runs natively on CPU, and costs ~150MB RAM.
-    logger.info("Loading lightweight FastEmbed ONNX runtime...")
-    model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5",threads=1)
+    """Sequential execution to keep memory strictly under 512MB."""
+    logger.info("Starting sequential Embed & Store with FastEmbed...")
     
-    # Safely get state variables
+    # Instantiate once with single thread allocation
+    model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5", threads=1)
+    
     ingestion_time = {**state.get('ingestion_time', {})}
     chunk_factory = {**state.get('chunk_factory', {})}
     vectorstores = {}
 
-    # Dispatch all 4 vector databases to build concurrently in background threads
-    tasks = [
-        asyncio.to_thread(build_single_vectorstore, strategy, chunks, model)
-        for strategy, chunks in chunk_factory.items()
-    ]
-    
-    # Wait for all of them to finish at the exact same time
-    results = await asyncio.gather(*tasks)
+    # Run sequentially instead of asyncio.gather to avoid RAM multiplication
+    for strategy, chunks in chunk_factory.items():
+        logger.info(f"Building vector store for: {strategy}")
+        strat, vstore, time_taken = build_single_vectorstore(strategy, chunks, model)
+        vectorstores[strat] = vstore
+        ingestion_time[strat] = ingestion_time.get(strat, 0) + time_taken
+        gc.collect()  # Immediately free intermediate allocations
 
-    # Reassemble the results into the state dictionaries
-    for strategy, vectorstore, total in results:
-        vectorstores[strategy] = vectorstore
-        ingestion_time[strategy] = ingestion_time.get(strategy, 0) + total
-
-    logger.info("Embed & Store Completed (Parallel Execution with FastEmbed)")
     save_state(filename="total_ingestion_time", data=ingestion_time)
-    
     return {"vectorstore": vectorstores, "ingestion_time": ingestion_time}
