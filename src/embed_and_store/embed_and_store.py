@@ -7,8 +7,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_community.docstore import InMemoryDocstore
 
-# 1. IMPORT FASTEMBED (The ONNX Magic - Zero PyTorch!)
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+from src.embed_and_store.shared_embedder import get_shared_embedder
 
 # Removed the old PyTorch-heavy embedding_model factory
 from src.orchestration.agent_state import AgentState
@@ -62,7 +61,7 @@ async def embed_and_store(state: AgentState) -> dict:
     logger.info("Starting sequential Embed & Store with FastEmbed...")
     
     # Instantiate once with single thread allocation
-    model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5", threads=1)
+    model = get_shared_embedder()
     
     ingestion_time = {**state.get('ingestion_time', {})}
     chunk_factory = {**state.get('chunk_factory', {})}
