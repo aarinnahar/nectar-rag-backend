@@ -1,0 +1,70 @@
+
+  [{
+    "query": "What first made Ravi realize his water pot might be special after the old man left?",
+    "answer": "Ravi realized the pot was special when he tilted it to get a final drop and a gush of sweet, refreshing water ran down his face, quenching his thirst and instantly curing his headache. [cite: 19, 20]",
+    "doc_id": "docA.pdf",
+    "meta": {
+      "page": 1
+    }
+  },
+  {
+    "query": "How did Karim discover the healing powers of Ravi's water pitcher?",
+    "answer": "Karim discovered the pitcher's power after he drank a tumblerful of water at the shop and realized his leg, which had been injured in an accident years ago, had healed on its own. [cite: 33, 44]",
+    "doc_id": "docA.pdf",
+    "meta": {
+      "page": 2
+    }
+  },
+  {
+    "query": "What change occurred in the pitcher every morning after the news of its magic spread?",
+    "answer": "Every morning, the pitcher would be filled to the brim with sweet, cool water, and it never ran empty despite Ravi giving drinks to a daily queue of sick people. [cite: 50, 53]",
+    "doc_id": "docA.pdf",
+    "meta": {
+      "page": 2
+    }
+  },
+  {
+    "query": "Why did Ravi initially refuse the rich landlord's request to visit his house?",
+    "answer": "Ravi initially refused because there was a large crowd of sick people waiting in the sun for their turn, and he felt he could not leave them to go to the master. [cite: 59, 60, 61]",
+    "doc_id": "docA.pdf",
+    "meta": {
+      "page": 3
+    }
+  },
+  {
+    "query": "Between the old man and the king's messenger, which request did Ravi prioritize in the end?",
+    "answer": "Ravi prioritized the king's messenger because he pictured gold coins showering down on him for curing the queen's mosquito bites, telling the old man to wait until he returned. [cite: 78, 79, 80]",
+    "doc_id": "docA.pdf",
+    "meta": {
+      "page": 3
+    }
+  },
+
+  {
+    "query": "What did Mushika the mouse demand from the potter in exchange for a dry twig?",
+    "answer": "Mushika demanded a large pumpkin that was lying in the corner of the potter's room[cite: 96]. Despite the potter's initial hesitation, the mouse remained stubborn and would accept nothing else[cite: 99].",
+    "doc_id": "docB.pdf",
+    "meta": {
+      "page": 1
+    }
+  },
+  {
+    "query": "Why did Mushika realize that bringing a human bride home was a mistake?",
+    "answer": "Mushika realized he was in a 'real fix' because the bride walked too slowly [cite: 130, 135], could not cook a meal without a kitchen, spices, and vessels [cite: 133, 134], and was too large to even fit her toe inside his small mouse hole[cite: 138].",
+    "doc_id": "docB.pdf",
+    "meta": {
+      "page": 2
+    }
+  },
+  {
+    "query": "What specific flaw did the forest goddess warn the King and Queen of Ullas about regarding their future child?",
+    "answer": "The goddess warned that the child would love new clothes too much, which would eventually make life difficult for the parents[cite: 146, 147].",
+    "doc_id": "docB.pdf",
+    "meta": {
+      "page": 3
+    }
+  }]
+
+
+
+

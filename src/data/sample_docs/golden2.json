@@ -1,0 +1,162 @@
+[
+  {
+    "query": "What were PDF Solutions' total revenues and year-over-year growth for the fiscal year 2025?",
+    "answer": "For the fiscal year 2025, PDF Solutions achieved record total revenues of $219 million, representing a 22% year-over-year growth. [cite: 1, 4, 313]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 1
+    }
+  },
+  {
+    "query": "What was the company's largest acquisition to date, completed in early 2025?",
+    "answer": "The company completed the acquisition of the secureWISE™ system in early 2025, which was its largest acquisition to date. [cite: 5, 250, 302]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 1
+    }
+  },
+  {
+    "query": "How did PDF Solutions rearchitect the Exensio analytics software in 2025 to meet the needs of the AI era?",
+    "answer": "The rearchitecting involved two dimensions: first, enhancing the data model with the Exensio Scalable Analytics module to scale linearly with data size; and second, integrating a machine learning (ML) development environment and lifecycle management solution through the Exensio Studio AI module. [cite: 6]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 2
+    }
+  },
+  {
+    "query": "What is the primary purpose of the Sapience Manufacturing Hub enterprise (Sapience MHe) software solution?",
+    "answer": "Sapience MHe is designed to integrate manufacturing execution systems (MES) with enterprise applications like ERP or PLM, allowing data to be shared across internal groups to coordinate actions between engineering, manufacturing operations, and finance. [cite: 8, 63, 64]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 2
+    }
+  },
+  {
+    "query": "How does the eProbe non-contact electron beam tool differ from conventional e-beam inspectors?",
+    "answer": "Unlike conventional e-beam inspectors that raster across regions to perform die-to-die comparisons for defective pixels, the eProbe tool functions as a contactless electrical tester that jumps between specific devices under test (DUT) to measure voltage contrast at specific pads. [cite: 66, 68]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 19
+    }
+  },
+  {
+    "query": "What are the two primary categories from which PDF Solutions derives its revenues following its 2025 reporting update?",
+    "answer": "The company now presents its revenues in two categories: Platform revenue and Volume-based revenue. [cite: 30, 355, 462]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 12
+    }
+  },
+  {
+    "query": "As of December 31, 2025, how many U.S. patents did the company hold?",
+    "answer": "As of December 31, 2025, PDF Solutions held 209 U.S. patents, with expiration dates ranging from 2027 through 2043. [cite: 47]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 15
+    }
+  },
+  {
+    "query": "Which revenue category includes fees from Cimetrix runtime licenses and secureWISE data usage?",
+    "answer": "Fees from Cimetrix runtime licenses and secureWISE data, along with variable/royalty fees known as Gainshare, are categorized under Volume-based revenue. [cite: 31, 355, 463]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 12
+    }
+  },
+  {
+    "query": "In fiscal year 2025, what percentage of total revenues was accounted for by three specific customers?",
+    "answer": "Three customers accounted for an aggregate of 53% of the company's total revenues for the year 2025. [cite: 101, 160, 469]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 23
+    }
+  },
+  {
+    "query": "Who is the President and Chief Executive Officer of PDF Solutions as of the 2025 Annual Report?",
+    "answer": "John K. Kibarian, Ph.D., is the President and Chief Executive Officer, as well as a co-founder and stockholder of the company. [cite: 12, 123]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 3
+    }
+  },
+  {
+    "query": "What three converging forces are driving the fundamental transformation of the semiconductor industry according to the CEO?",
+    "answer": "The transformation is driven by the explosive complexity of 3D chiplet-based system manufacturing, the rise of AI pushing the industry toward $1 trillion by 2030, and geopolitical realities necessitating geographic diversification and secure supply chain collaboration. [cite: 2]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 1
+    }
+  },
+  {
+    "query": "What was the total recurring revenue for PDF Solutions in 2025, and how did it change from 2024?",
+    "answer": "Recurring revenue for 2025 was $205 million, which represented a 41% increase over the previous year. [cite: 4]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 1
+    }
+  },
+  {
+    "query": "How does the Exensio Scalable Analytics module benefit engineers working with large data sets?",
+    "answer": "The Exensio Scalable Analytics module is architected to scale linearly with data size, allowing engineers to work interactively with extremely large data sets that were previously beyond reach. [cite: 6]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 2
+    }
+  },
+  {
+    "query": "Approximately how many semiconductor manufacturing tools were shipped with enabled Cimetrix products in 2025?",
+    "answer": "In 2025, nearly 8,000 pieces of semiconductor manufacturing equipment were shipped with Cimetrix products enabled. [cite: 43]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 14
+    }
+  },
+  {
+    "query": "What is the function of the Cimetrix CIMPortal™ Plus software interface?",
+    "answer": "Cimetrix CIMPortal Plus is an interface for Equipment Data Acquisition (EDA), also known as Interface A, designed to collect data from multiple sources and route it to clients for applications such as equipment health monitoring and predictive maintenance. [cite: 79, 80]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 20
+    }
+  },
+  {
+    "query": "As of December 31, 2025, how many employees did PDF Solutions have worldwide, and how many were in R&D?",
+    "answer": "The company had 600 employees worldwide at the end of 2025, with 225 of those individuals working in research and development functions. [cite: 120, 121]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 27
+    }
+  },
+  {
+    "query": "Where are PDF Solutions' principal executive offices located?",
+    "answer": "The principal executive offices are located at 2858 De La Cruz Blvd., Santa Clara, California 95050. [cite: 13, 285]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 32
+    }
+  },
+  {
+    "query": "What was the total cash purchase price for the acquisition of SecureWise LLC?",
+    "answer": "The acquisition of SecureWise was completed for a cash purchase price of $130.0 million, funded through a combination of cash on hand and borrowings under credit facilities. [cite: 635]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 74
+    }
+  },
+  {
+    "query": "What are the details of the stock repurchase program adopted by the Board of Directors in April 2024?",
+    "answer": "The 2024 Program authorized the repurchase of up to $40.0 million of the company's common stock in the open market or through privately negotiated transactions over a two-year period. [cite: 295, 390]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 33
+    }
+  },
+  {
+    "query": "How does the company define and calculate 'Gainshare' revenue?",
+    "answer": "Gainshare consists of variable/royalty fees associated with Characterization Vehicle (CV) systems, which are typically recognized based on estimates of customers' underlying wafer manufacturing volumes. [cite: 31, 324, 330]",
+    "doc_id": "FINAL Annual Report.pdf",
+    "meta": {
+      "page": 45
+    }
+  }
+]

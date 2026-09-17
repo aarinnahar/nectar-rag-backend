@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <title>Chunking Strategy Evaluation Dashboard</title>
+    <!-- Tailwind CSS for rapid, modern utility-first styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for crisp typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Hide scrollbar for tab navigation but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Force Plotly charts to take full width */
+        .js-plotly-plot, .plotly-graph-div, .plot-container {
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 lg:p-12 selection:bg-teal-500 selection:text-slate-900">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+
+        <!-- GLOBAL HEADER SECTION (Always visible) -->
+        <header class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-slate-700/50 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-xl">
+            <div class="space-y-2">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-3 w-3 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                    </span>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                        Chunking Strategy Evaluation Report
+                    </h1>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs font-medium pt-1">
+                    <span class="px-3 py-1 bg-slate-700 text-slate-300 rounded-md border border-slate-600/50">📄 File: text_document_testing_pdf</span>
+                    <span class="px-3 py-1 bg-slate-700 text-slate-300 rounded-md border border-slate-600/50">🎯 Dataset: Golden Dataset (8 Test Queries)</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Model + Embeddings Card -->
+                <div class="flex items-center gap-4 bg-slate-900/60 px-4 py-3 rounded-xl border border-slate-700/60">
+                    <div class="text-xs">
+                        <span class="block text-slate-500 font-bold uppercase tracking-wider">🎯 Target Model</span>
+                        <span class="text-teal-400 font-semibold text-sm font-mono">openai/gpt-oss-20b</span>
+                    </div>
+                    <div class="w-px h-10 bg-slate-700"></div>
+                    <div class="text-xs">
+                        <span class="block text-slate-500 font-bold uppercase tracking-wider">🧠 Embeddings</span>
+                        <span class="text-purple-400 font-semibold text-sm font-mono">sentence-transformers/all-MiniLM-L6-v2</span>
+                    </div>
+                </div>
+
+                <!-- Chunk Configuration Card -->
+                <div class="bg-slate-900/60 px-4 py-3 rounded-xl border border-slate-700/60">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">📦 Chunk Configuration</div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                            <span class="text-cyan-400 text-xs font-semibold">Size:</span>
+                            <span class="text-cyan-300 text-xs font-mono">1130</span>
+                        </span>
+                        <span class="px-3 py-1 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                            <span class="text-orange-400 text-xs font-semibold">Overlap:</span>
+                            <span class="text-orange-300 text-xs font-mono">130</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- TAB NAVIGATION -->
+        <div class="border-b border-slate-700">
+            <nav class="flex space-x-6 overflow-x-auto no-scrollbar" aria-label="Tabs">
+                <button onclick="switchTab(event, 'tab-summary')" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-teal-500 text-teal-400">
+                    1. Summary Report
+                </button>
+                <button onclick="switchTab(event, 'tab-performance')" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300">
+                    2. Performance Metrics
+                </button>
+                <button onclick="switchTab(event, 'tab-diagnose')" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300">
+                    3. Granular Diagnose
+                </button>
+                <button onclick="switchTab(event, 'tab-insights')" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300">
+                    4. Deep Dive Insights
+                </button>
+                <button onclick="switchTab(event, 'tab-visuals')" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300">
+                    5. Visual Picture
+                </button>
+            </nav>
+        </div>
+
+        <!-- TAB 1: SUMMARY REPORT -->
+        <div id="tab-summary" class="tab-content block space-y-6 animate-[fadeIn_0.3s_ease-in-out]">
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Winner Strategy Card -->
+                <div class="lg:col-span-2 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-2xl p-6 md:p-8 text-slate-100 shadow-2xl relative overflow-hidden border border-emerald-500/30 flex flex-col justify-between">
+                    <div class="relative z-10 space-y-4">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-900/40 text-emerald-300 rounded-full text-xs font-bold uppercase tracking-wide border border-emerald-400/20">
+                            🏆 Evaluator Winner Choice
+                        </div>
+                        <h2 class="text-3xl font-black tracking-tight">Semantic Text Splitter</h2>
+                        <p class="text-teal-100 text-sm md:text-base leading-relaxed max-w-2xl font-light">
+                            Semantic Text Splitter wins with a 61.1% score, balancing accuracy and cost. Recursive Character Splitter falls short due to boundary trade‑offs and higher cost, while Token Splitter fails outright because of low recall and noise. Deploy Semantic Text Splitter.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-teal-500/30 flex items-center justify-between relative z-10">
+                        <div class="text-xs uppercase tracking-wider text-teal-200 font-semibold">Overall Index Score</div>
+                        <div class="text-2xl font-black text-white font-mono bg-slate-900/30 px-3 py-1 rounded-lg border border-white/10">
+                            61.1%
+                        </div>
+                    </div>
+                    <!-- Graphic decoration elements -->
+                    <div class="absolute -bottom-16 -right-16 w-48 h-48 bg-white/5 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="absolute top-4 right-4 text-white/10 text-9xl font-black pointer-events-none select-none">#1</div>
+                </div>
+
+                <!-- Podium Breakdown Card -->
+                <div class="bg-slate-800/40 rounded-2xl p-6 border border-slate-700/50 flex flex-col justify-between shadow-lg">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span> Podium Breakdown
+                        </h3>
+                        <div class="space-y-3">
+                            
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-teal-500/10 border border-teal-500/30">
+                                <div class="truncate max-w-[65%]">
+                                    <span class="block font-bold text-[10px] uppercase tracking-wider mb-0.5 text-teal-400">
+                                        Winner
+                                    </span>
+                                    <span class="block font-semibold text-sm truncate text-slate-200">
+                                        Semantic Text Splitter
+                                    </span>
+                                    
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    <span class="text-xs font-bold font-mono text-slate-300">61.1% Acc.</span>
+                                    <span class="text-[10px] text-amber-400 tracking-tighter mt-1">
+                                        ⭐⭐
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                                <div class="truncate max-w-[65%]">
+                                    <span class="block font-bold text-[10px] uppercase tracking-wider mb-0.5 text-blue-400">
+                                        Runner-Up
+                                    </span>
+                                    <span class="block font-semibold text-sm truncate text-slate-200">
+                                        Recursive Character Text Splitter
+                                    </span>
+                                    
+                                    <span class="inline-block mt-1.5 px-2 py-0.5 text-[10px] bg-slate-900/80 text-slate-300 rounded border border-slate-700/80 font-mono truncate max-w-full">
+                                        🚨 Boundary Health Trade-off
+                                    </span>
+                                    
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    <span class="text-xs font-bold font-mono text-slate-300">57.5% Acc.</span>
+                                    <span class="text-[10px] text-amber-400 tracking-tighter mt-1">
+                                        ⭐
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
+                                <div class="truncate max-w-[65%]">
+                                    <span class="block font-bold text-[10px] uppercase tracking-wider mb-0.5 text-rose-400">
+                                        Loser
+                                    </span>
+                                    <span class="block font-semibold text-sm truncate text-slate-200">
+                                        Character Text Splitter
+                                    </span>
+                                    
+                                    <span class="inline-block mt-1.5 px-2 py-0.5 text-[10px] bg-slate-900/80 text-slate-300 rounded border border-slate-700/80 font-mono truncate max-w-full">
+                                        🚨 Context Truncated
+                                    </span>
+                                    
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    <span class="text-xs font-bold font-mono text-slate-300">39.5% Acc.</span>
+                                    <span class="text-[10px] text-amber-400 tracking-tighter mt-1">
+                                        ⭐
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
+                                <div class="truncate max-w-[65%]">
+                                    <span class="block font-bold text-[10px] uppercase tracking-wider mb-0.5 text-rose-400">
+                                        Loser
+                                    </span>
+                                    <span class="block font-semibold text-sm truncate text-slate-200">
+                                        Token Text Splitter
+                                    </span>
+                                    
+                                    <span class="inline-block mt-1.5 px-2 py-0.5 text-[10px] bg-slate-900/80 text-slate-300 rounded border border-slate-700/80 font-mono truncate max-w-full">
+                                        🚨 Low Accuracy
+                                    </span>
+                                    
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    <span class="text-xs font-bold font-mono text-slate-300">37.5% Acc.</span>
+                                    <span class="text-[10px] text-amber-400 tracking-tighter mt-1">
+                                        ⭐
+                                    </span>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 2: PERFORMANCE METRICS -->
+        <div id="tab-performance" class="tab-content hidden space-y-6 animate-[fadeIn_0.3s_ease-in-out]">
+            <section class="bg-slate-800/30 rounded-2xl border border-slate-700/50 overflow-hidden shadow-lg">
+                <div class="p-6 border-b border-slate-700/50 bg-slate-800/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                            <span>🏎️</span> High-Level Performance Metrics
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Overall system grades, index scores, and aggregated latency/cost profiles.</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-max">
+                        <thead>
+                            <tr class="bg-slate-800/70 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-700 font-mono">
+                                <th class="p-4 font-bold">Strategy</th>
+                                <th class="p-4 font-bold">System Grade</th>
+                                <th class="p-4 font-bold">Index Score</th>
+                                <th class="p-4 font-bold">Retrieval Accuracy</th>
+                                <th class="p-4 font-bold">Chunk Quality</th>
+                                <th class="p-4 font-bold">p95 Latency</th>
+                                <th class="p-4 font-bold">Cost / 1K (GPT-4o, Sonnet 3.5)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-slate-800">
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-green-500">
+                                <td class="p-4 font-semibold">Semantic Text Splitter</td>
+                                <td class="p-4"><span class="px-2 py-0.5 rounded font-mono text-xs font-bold ">C (Marginal - High Risk of Noise or Waste)</span></td>
+                                <td class="p-4 font-mono">61.1%</td>
+                                <td class="p-4 font-mono">71%</td>
+                                <td class="p-4 font-mono">79%</td>
+                                <td class="p-4 font-mono">7.14078ms</td>
+                                <td class="p-4 font-mono">$6.25</td>
+                            </tr>
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-lime-400">
+                                <td class="p-4 font-semibold">Recursive Character Text Splitter</td>
+                                <td class="p-4"><span class="px-2 py-0.5 rounded font-mono text-xs font-bold ">F (Failing - Do Not Deploy)</span></td>
+                                <td class="p-4 font-mono">57.5%</td>
+                                <td class="p-4 font-mono">77%</td>
+                                <td class="p-4 font-mono">60%</td>
+                                <td class="p-4 font-mono">8.06477ms</td>
+                                <td class="p-4 font-mono">$8.44</td>
+                            </tr>
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-yellow-400">
+                                <td class="p-4 font-semibold">Character Text Splitter</td>
+                                <td class="p-4"><span class="px-2 py-0.5 rounded font-mono text-xs font-bold ">F (Failing - Do Not Deploy)</span></td>
+                                <td class="p-4 font-mono">39.5%</td>
+                                <td class="p-4 font-mono">34%</td>
+                                <td class="p-4 font-mono">75%</td>
+                                <td class="p-4 font-mono">8.53048ms</td>
+                                <td class="p-4 font-mono">$30.4</td>
+                            </tr>
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-red-500">
+                                <td class="p-4 font-semibold">Token Text Splitter</td>
+                                <td class="p-4"><span class="px-2 py-0.5 rounded font-mono text-xs font-bold ">F (Failing - Do Not Deploy)</span></td>
+                                <td class="p-4 font-mono">37.5%</td>
+                                <td class="p-4 font-mono">38%</td>
+                                <td class="p-4 font-mono">48%</td>
+                                <td class="p-4 font-mono">7.16459ms</td>
+                                <td class="p-4 font-mono">$18.89</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 3: GRANULAR DIAGNOSE -->
+        <div id="tab-diagnose" class="tab-content hidden space-y-6 animate-[fadeIn_0.3s_ease-in-out]">
+            <section class="bg-slate-800/30 rounded-2xl border border-slate-700/50 overflow-hidden shadow-lg">
+                <div class="p-6 border-b border-slate-700/50 bg-slate-800/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                            <span>🔬</span> Granular Diagnose Metrics
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Detailed determininstic execution metrics chunk by chunk.</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-max">
+                        <thead>
+                            <tr class="bg-slate-800/70 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-700 font-mono">
+                                <th class="p-4 font-bold">Strategy</th>
+                                <th class="p-4 font-bold">Context Recall</th>
+                                <th class="p-4 font-bold">Context Precision</th>
+                                <th class="p-4 font-bold">Hit Rate @ K</th>
+                                <th class="p-4 font-bold">Boundary Health</th>
+                                <th class="p-4 font-bold">Intra-Chunk Coherence</th>
+                                <th class="p-4 font-bold">Inter-Chunk Redundancy</th>
+                                <th class="p-4 font-bold">Avg Latency (ms)</th>
+                                <th class="p-4 font-bold">Total Ingestion (s)</th>
+                                <th class="p-4 font-bold">Avg Tokens/Query</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-slate-800">
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-green-500">
+                                <td class="p-4 font-semibold">Semantic Text Splitter</td>
+                                <td class="p-4 font-mono">0.688</td>
+                                <td class="p-4 font-mono">0.729</td>
+                                <td class="p-4 font-mono">0.375</td>
+                                <td class="p-4 font-mono">1.0</td>
+                                <td class="p-4 font-mono">0.579</td>
+                                <td class="p-4 font-mono">0.0053</td>
+                                <td class="p-4 font-mono">7.00939</td>
+                                <td class="p-4 font-mono">7.33</td>
+                                <td class="p-4 font-mono">1107.6</td>
+                            </tr>
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-lime-400">
+                                <td class="p-4 font-semibold">Recursive Character Text Splitter</td>
+                                <td class="p-4 font-mono">0.688</td>
+                                <td class="p-4 font-mono">0.854</td>
+                                <td class="p-4 font-mono">0.25</td>
+                                <td class="p-4 font-mono">0.652</td>
+                                <td class="p-4 font-mono">0.548</td>
+                                <td class="p-4 font-mono">0.0761</td>
+                                <td class="p-4 font-mono">7.38087</td>
+                                <td class="p-4 font-mono">0.72</td>
+                                <td class="p-4 font-mono">1545.4</td>
+                            </tr>
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-yellow-400">
+                                <td class="p-4 font-semibold">Character Text Splitter</td>
+                                <td class="p-4 font-mono">0.562</td>
+                                <td class="p-4 font-mono">0.125</td>
+                                <td class="p-4 font-mono">0.0</td>
+                                <td class="p-4 font-mono">1.0</td>
+                                <td class="p-4 font-mono">0.492</td>
+                                <td class="p-4 font-mono">0.011</td>
+                                <td class="p-4 font-mono">7.8199</td>
+                                <td class="p-4 font-mono">0.19</td>
+                                <td class="p-4 font-mono">5936.6</td>
+                            </tr>
+                            
+                            
+                            <tr class="hover:bg-slate-800/40 transition-colors duration-200 text-red-500">
+                                <td class="p-4 font-semibold">Token Text Splitter</td>
+                                <td class="p-4 font-mono">0.688</td>
+                                <td class="p-4 font-mono">0.062</td>
+                                <td class="p-4 font-mono">0.0</td>
+                                <td class="p-4 font-mono">0.464</td>
+                                <td class="p-4 font-mono">0.501</td>
+                                <td class="p-4 font-mono">0.1313</td>
+                                <td class="p-4 font-mono">6.96363</td>
+                                <td class="p-4 font-mono">0.49</td>
+                                <td class="p-4 font-mono">3634.9</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 4: DEEP DIVE INSIGHTS -->
+        <div id="tab-insights" class="tab-content hidden space-y-6 animate-[fadeIn_0.3s_ease-in-out]">
+            <section class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                        <span class="text-teal-400">🔍</span> Deep-Dive Performance Insights
+                    </h2>
+                    <span class="text-xs bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-md text-slate-400 font-mono">
+                        Node: analyze_metrics_node
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- CARD 1: WINNER RATIONALE -->
+                    <div class="bg-slate-800/40 rounded-2xl border border-slate-700/60 overflow-hidden flex flex-col justify-between shadow-md group hover:border-emerald-500/40 transition-colors">
+                        <div>
+                            <div class="p-5 border-b border-slate-700/50 bg-slate-800/50 flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">01 // Winner Rationale</span>
+                                <span class="p-1 rounded-md bg-emerald-500/10 text-emerald-400">🏆</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <h3 class="font-bold text-slate-100 text-base leading-tight group-hover:text-emerald-400 transition-colors">
+                                    Semantic Text Splitter Tops the Charts
+                                </h3>
+                                <p class="text-xs text-slate-400 leading-relaxed font-light">
+                                    Semantic Text Splitter leads with a 61.1% score and a recall of 0.688, balancing accuracy and structural integrity. Its $6.254 per 1k query cost is marginally higher but justified by superior retrieval performance. The system grade of C reflects a high‑risk but acceptable trade‑off.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 border-t border-slate-800 m-3 rounded-xl border border-emerald-500/10">
+                            <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 mb-1 font-mono">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Comparative Delta
+                            </div>
+                            <p class="text-xs text-slate-300 italic font-light leading-normal">
+                                The 61.1% score places Semantic Text Splitter first, with recall 0.688 and strong boundary health. Its slightly higher token cost of $6.254 per 1k queries is offset by better retrieval accuracy, making it the most viable option.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: RUNNER-UP RATIONALE -->
+                    <div class="bg-slate-800/40 rounded-2xl border border-slate-700/60 overflow-hidden flex flex-col justify-between shadow-md group hover:border-blue-500/40 transition-colors">
+                        <div>
+                            <div class="p-5 border-b border-slate-700/50 bg-slate-800/50 flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-mono">02 // Runner-Up Rationale</span>
+                                <span class="p-1 rounded-md bg-blue-500/10 text-blue-400">🥈</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <h3 class="font-bold text-slate-100 text-base leading-tight group-hover:text-blue-400 transition-colors">
+                                    Runner‑Up Meets Performance but Lags on Cost
+                                </h3>
+                                <p class="text-xs text-slate-400 leading-relaxed font-light">
+                                    Recursive Character Splitter ranks second with a 57.5% score and a recall of 0.688. Its throughput is competitive, but higher cost and minor boundary health issues prevent it from overtaking the winner. It remains a viable but secondary option.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 border-t border-slate-800 m-3 rounded-xl border border-blue-500/10">
+                            <div class="text-[10px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5 mb-1 font-mono">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Comparative Delta
+                            </div>
+                            <p class="text-xs text-slate-300 italic font-light leading-normal">
+                                Although its recall matches the winner, Recursive Character Splitter’s higher cost per 1k queries ($8.443 vs $6.254) and slight boundary health trade‑offs reduce its overall value. The performance gap of 3.6 percentage points keeps it from leading the pack.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: LOSER RATIONALE -->
+                    <div class="bg-slate-800/40 rounded-2xl border border-slate-700/60 overflow-hidden flex flex-col justify-between shadow-md group hover:border-rose-500/40 transition-colors">
+                        <div>
+                            <div class="p-5 border-b border-slate-700/50 bg-slate-800/50 flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest font-mono">03 // Loser Rationale</span>
+                                <span class="p-1 rounded-md bg-rose-500/10 text-rose-400">📉</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <h3 class="font-bold text-slate-100 text-base leading-tight group-hover:text-rose-400 transition-colors">
+                                    Token Splitter Fails to Meet Threshold
+                                </h3>
+                                <p class="text-xs text-slate-400 leading-relaxed font-light">
+                                    Token Text Splitter lags with a 37.5% score, falling into the failing category. Its low recall and high noise levels render it unsuitable for deployment. The performance gap to the winner is stark, making it a clear non‑viable option.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 border-t border-slate-800 m-3 rounded-xl border border-rose-500/10">
+                            <div class="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5 mb-1 font-mono">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Comparative Delta
+                            </div>
+                            <p class="text-xs text-slate-300 italic font-light leading-normal">
+                                Despite its simplicity, Token Text Splitter’s retrieval accuracy is insufficient, yielding a 37.5% score that places it in the failing grade. The low recall of 0.688 and high noise risk make it unsuitable for production.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 5: VISUAL PICTURE -->
+        <div id="tab-visuals" class="tab-content hidden space-y-6 animate-[fadeIn_0.3s_ease-in-out]">
+            <section class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                        <span class="text-cyan-400">📊</span> Visual Analytics
+                    </h2>
+                    <span class="text-xs bg-slate-800 border border-slate-700 px-2 py-1 rounded-md text-slate-400 font-mono">
+                        Interactive Plotly Dashboard
+                    </span>
+                </div>
+
+                <!-- Graph 1 -->
+                <div class="bg-slate-800/40 rounded-2xl border border-slate-700/60 p-6 shadow-lg w-full overflow-hidden">
+                    <div class="mb-5">
+                        <h3 class="text-lg font-semibold text-slate-100">Multi-Dimensional Structural Quality</h3>
+                        <p class="text-sm text-slate-400 mt-1">Comparison of Context Recall, Context Precision, Boundary Health, and Intra-Chunk Coherence.</p>
+                    </div>
+                    <div class="w-full">
+                        <div style="height:100%; width:100%;">                            <div id="6408bb61-0f2c-4188-a6b4-7d3dc562f3de" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("6408bb61-0f2c-4188-a6b4-7d3dc562f3de")) {                    Plotly.newPlot(                        "6408bb61-0f2c-4188-a6b4-7d3dc562f3de",                        [{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eAvg Tokens: %{x:,.0f}\u003cbr\u003eContext Recall: %{y:.1%}\u003cbr\u003e\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["character_text_splitter_chunks"],"legendgroup":"character_text_splitter_chunks","marker":{"color":"rgb(95, 70, 144)","size":{"dtype":"f8","bdata":"AAAAAAAALkA="},"sizemode":"area","sizeref":0.016666666666666666,"symbol":"circle"},"mode":"markers","name":"character_text_splitter_chunks","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"mpmZmZkwt0A="},"xaxis":"x","y":{"dtype":"f8","bdata":"lkOLbOf74T8="},"yaxis":"y","type":"scatter"},{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eAvg Tokens: %{x:,.0f}\u003cbr\u003eContext Recall: %{y:.1%}\u003cbr\u003e\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["recursive_text_splitter_chunks"],"legendgroup":"recursive_text_splitter_chunks","marker":{"color":"rgb(29, 105, 150)","size":{"dtype":"f8","bdata":"AAAAAAAALkA="},"sizemode":"area","sizeref":0.016666666666666666,"symbol":"circle"},"mode":"markers","name":"recursive_text_splitter_chunks","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"mpmZmZklmEA="},"xaxis":"x","y":{"dtype":"f8","bdata":"arx0kxgE5j8="},"yaxis":"y","type":"scatter"},{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eAvg Tokens: %{x:,.0f}\u003cbr\u003eContext Recall: %{y:.1%}\u003cbr\u003e\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["token_text_splitter_chunks"],"legendgroup":"token_text_splitter_chunks","marker":{"color":"rgb(56, 166, 165)","size":{"dtype":"f8","bdata":"AAAAAAAALkA="},"sizemode":"area","sizeref":0.016666666666666666,"symbol":"circle"},"mode":"markers","name":"token_text_splitter_chunks","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"zczMzMxlrEA="},"xaxis":"x","y":{"dtype":"f8","bdata":"arx0kxgE5j8="},"yaxis":"y","type":"scatter"},{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eAvg Tokens: %{x:,.0f}\u003cbr\u003eContext Recall: %{y:.1%}\u003cbr\u003e\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["semantic_chunks"],"legendgroup":"semantic_chunks","marker":{"color":"rgb(15, 133, 84)","size":{"dtype":"f8","bdata":"AAAAAAAALkA="},"sizemode":"area","sizeref":0.016666666666666666,"symbol":"circle"},"mode":"markers","name":"semantic_chunks","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"ZmZmZmZOkUA="},"xaxis":"x","y":{"dtype":"f8","bdata":"arx0kxgE5j8="},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Avg Tokens \u002f Query (Cost Proxy)"},"showgrid":true,"gridwidth":1,"gridcolor":"rgba(255,255,255,0.1)"},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Context Recall"},"showgrid":true,"gridwidth":1,"gridcolor":"rgba(255,255,255,0.1)","range":[0,1.05],"tickformat":".0%"},"legend":{"title":{"text":"Strategy"},"tracegroupgap":0,"itemsizing":"constant","bgcolor":"rgba(30,30,30,0.8)","bordercolor":"rgba(255,255,255,0.2)","borderwidth":1,"x":1.02,"y":1},"margin":{"t":60,"l":60,"r":160,"b":60},"title":{"font":{"size":18,"family":"Inter","color":"white"},"text":"Quality vs. Cost Trade-off","x":0.5},"font":{"family":"Inter","color":"white"}},                        {"responsive": true, "displaylogo": false}                    )                };            </script>        </div>
+                    </div>
+                </div>
+
+                <!-- Graph 2 -->
+                <div class="bg-slate-800/40 rounded-2xl border border-slate-700/60 p-6 shadow-lg w-full overflow-hidden">
+                    <div class="mb-5">
+                        <h3 class="text-lg font-semibold text-slate-100">Quality vs. Cost & Latency Trade-off</h3>
+                        <p class="text-sm text-slate-400 mt-1">Mapping Avg Tokens per Query (Cost) against Context Recall (Quality), driven by Latency.</p>
+                    </div>
+                    <div class="w-full">
+                        <div style="height:100%; width:100%;">                            <div id="ef93ddaa-8182-43a7-a818-d09011d3010b" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("ef93ddaa-8182-43a7-a818-d09011d3010b")) {                    Plotly.newPlot(                        "ef93ddaa-8182-43a7-a818-d09011d3010b",                        [{"marker":{"color":"#00E5FF"},"name":"Context Recall","text":{"dtype":"f8","bdata":"lkOLbOf74T9qvHSTGATmP2q8dJMYBOY\u002farx0kxgE5j8="},"textfont":{"color":"white","size":10},"textposition":"outside","texttemplate":"%{y:.1%}","x":["character_text_splitter_chunks","recursive_text_splitter_chunks","token_text_splitter_chunks","semantic_chunks"],"y":{"dtype":"f8","bdata":"lkOLbOf74T9qvHSTGATmP2q8dJMYBOY\u002farx0kxgE5j8="},"type":"bar"},{"marker":{"color":"#00FF88"},"name":"Context Precision","text":{"dtype":"f8","bdata":"AAAAAAAAwD+HFtnO91PrP1g5tMh2vq8\u002fhxbZzvdT5z8="},"textfont":{"color":"white","size":10},"textposition":"outside","texttemplate":"%{y:.1%}","x":["character_text_splitter_chunks","recursive_text_splitter_chunks","token_text_splitter_chunks","semantic_chunks"],"y":{"dtype":"f8","bdata":"AAAAAAAAwD+HFtnO91PrP1g5tMh2vq8\u002fhxbZzvdT5z8="},"type":"bar"},{"marker":{"color":"#FF9F43"},"name":"Boundary Health","text":{"dtype":"f8","bdata":"AAAAAAAA8D93vp8aL93kPxkEVg4tst0\u002fAAAAAAAA8D8="},"textfont":{"color":"white","size":10},"textposition":"outside","texttemplate":"%{y:.1%}","x":["character_text_splitter_chunks","recursive_text_splitter_chunks","token_text_splitter_chunks","semantic_chunks"],"y":{"dtype":"f8","bdata":"AAAAAAAA8D93vp8aL93kPxkEVg4tst0\u002fAAAAAAAA8D8="},"type":"bar"},{"marker":{"color":"#E040FB"},"name":"Intra-Chunk Coherence","text":{"dtype":"f8","bdata":"sHJoke183z\u002fwp8ZLN4nhP9V46SYxCOA\u002fukkMAiuH4j8="},"textfont":{"color":"white","size":10},"textposition":"outside","texttemplate":"%{y:.1%}","x":["character_text_splitter_chunks","recursive_text_splitter_chunks","token_text_splitter_chunks","semantic_chunks"],"y":{"dtype":"f8","bdata":"sHJoke183z\u002fwp8ZLN4nhP9V46SYxCOA\u002fukkMAiuH4j8="},"type":"bar"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"title":{"font":{"size":18,"family":"Inter","color":"white"},"text":"Multi-Dimensional Quality & Structural Health","x":0.5},"yaxis":{"title":{"text":"Score"},"range":[0,1.2],"tickformat":".0%"},"xaxis":{"title":{"text":"Chunking Strategy"},"tickangle":-30},"legend":{"orientation":"h","yanchor":"bottom","y":1.05,"xanchor":"center","x":0.5,"bgcolor":"rgba(0,0,0,0)"},"margin":{"t":100,"b":60,"l":50,"r":50},"barmode":"group"},                        {"responsive": true, "displaylogo": false}                    )                };            </script>        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Add fade in animation for smooth transitions -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <!-- JavaScript to handle tab switching -->
+    <script>
+        function switchTab(evt, tabId) {
+            // Hide all tab panels
+            const tabPanels = document.querySelectorAll('.tab-content');
+            tabPanels.forEach(panel => {
+                panel.classList.remove('block');
+                panel.classList.add('hidden');
+            });
+
+            // Remove active styling from all tabs
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.classList.remove('border-teal-500', 'text-teal-400');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            // Show current tab panel
+            const activePanel = document.getElementById(tabId);
+            activePanel.classList.remove('hidden');
+            activePanel.classList.add('block');
+
+            // Add active styling to clicked button
+            const clickedBtn = evt.currentTarget;
+            clickedBtn.classList.remove('border-transparent', 'text-slate-400');
+            clickedBtn.classList.add('border-teal-500', 'text-teal-400');
+
+            // Trigger a resize event to ensure Plotly charts stretch to fill the newly visible container.
+            // Charts rendered in hidden tabs often default to a narrow width.
+            if(tabId === 'tab-visuals') {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }
+    </script>
+</body>
+</html>
