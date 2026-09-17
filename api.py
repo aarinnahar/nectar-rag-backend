@@ -1,3 +1,7 @@
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["ONNXRUNTIME_MAX_THREADS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
