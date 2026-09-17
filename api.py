@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 # Import your LangGraph entry point here
-from src.main import run_evaluator 
+from src.orchestration.graph_builder import run_evaluator 
 
 app = FastAPI(title="RAG Evaluator API")
 
