@@ -19,3 +19,4 @@ uvicorn
 python-multipart
 scikit-learn
 tiktoken
+langchain_groq
