@@ -6,7 +6,7 @@ import re
 import html
 from bs4 import BeautifulSoup
 import logging
-
+import spacy
 
 
 logger = logging.getLogger("app") 
@@ -34,7 +34,7 @@ def semantic_chunking_pro(texts, window_size=3, percentile=10):
     text = robust_clean(texts)
     
     # 1. Split sentences (Now lightning fast due to the stripped SpaCy pipeline)
-    import spacy
+    
     doc = nlp(text)
     sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 5]
     
