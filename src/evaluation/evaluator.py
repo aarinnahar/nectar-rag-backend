@@ -108,6 +108,8 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
     executes zero-LLM deterministic checks across all metric dimensions, and returns 
     comprehensive aggregated evaluation scores.
     """
+    # LAZY LOAD: Initialize the wrapper strictly inside the node
+    local_embedder = FastEmbedWrapper("BAAI/bge-small-en-v1.5")
     retrieved_chunks_by_strategy = state.get("retrieved_chunks", {})
     vectorstores = state.get("vectorstore", {})
     chunk_factory = state.get("chunk_factory", {})
