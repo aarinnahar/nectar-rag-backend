@@ -32,7 +32,7 @@ class FastEmbedWrapper:
     Acts exactly like a SentenceTransformer to downstream metric functions,
     but runs on the ultra-lightweight ONNX C++ runtime to save RAM.
     """
-    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5"):
+    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5",threads=1):
         self.model = TextEmbedding(model_name=model_name)
 
     def encode(self, texts: Union[str, List[str]], **kwargs) -> np.ndarray:
