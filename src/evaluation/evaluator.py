@@ -3,13 +3,14 @@ import time
 import logging
 import numpy as np
 from typing import Dict, Any, List, Union
-from sentence_transformers import SentenceTransformer
+
+# 1. IMPORT FASTEMBED (Replacing PyTorch-heavy SentenceTransformer)
+from fastembed import TextEmbedding
 
 from src.orchestration.agent_state import AgentState
 from src.utils.save_state import save_state
 
 # Import all individual modular scoring functions
-
 from src.evaluation.metrics.compute_retrieval_metrics import compute_retrieval_metrics
 from src.evaluation.metrics.compute_boundary_health import compute_boundary_health
 from src.evaluation.metrics.compute_intra_chunk_coherence import compute_intra_chunk_coherence
@@ -22,8 +23,32 @@ from src.evaluation.metrics.compute_system_grade import compute_system_grade
 
 logger = logging.getLogger("app")
 
-# Initialize lightweight local embedding model once globally
-local_embedder = SentenceTransformer("all-MiniLM-L6-v2")
+
+# ==============================================================================
+# FAST-EMBED WRAPPER (ONNX Drop-in Replacement for SentenceTransformer)
+# ==============================================================================
+class FastEmbedWrapper:
+    """
+    Acts exactly like a SentenceTransformer to downstream metric functions,
+    but runs on the ultra-lightweight ONNX C++ runtime to save RAM.
+    """
+    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5"):
+        self.model = TextEmbedding(model_name=model_name)
+
+    def encode(self, texts: Union[str, List[str]], **kwargs) -> np.ndarray:
+        # FastEmbed requires a list of strings
+        if isinstance(texts, str):
+            texts = [texts]
+        
+        # model.embed returns a generator, so we immediately convert it to a 2D numpy array
+        # This matches PyTorch's output format perfectly for your downstream math
+        embeddings = list(self.model.embed(texts))
+        return np.array(embeddings, dtype=np.float32)
+
+# Initialize the lightweight ONNX embedding model once globally
+local_embedder = FastEmbedWrapper("BAAI/bge-small-en-v1.5")
+# ==============================================================================
+
 
 def performance_metrics(strategy_name: str, raw_metrics: dict, latency: dict) -> dict:
     """Transforms raw evaluation metrics into a business-friendly dashboard row."""
@@ -189,9 +214,9 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
         # Token Footprint & Cost Projections (Premium & Fast tiers)
         costs_data = compute_projected_costs(query_items)
         save_state(
-                    filename="costs_data",
-                    data=costs_data,
-                )
+                filename="costs_data",
+                data=costs_data,
+            )
         avg_tokens_per_query = costs_data.get("avg_input_tokens_per_query", 0.0)
         projected_cost_per_1k = costs_data.get("premium_cost_per_1k_usd", 0.0)
 
@@ -248,166 +273,3 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
     logger.debug("Evaluation node completed successfully.")
 
     return {"evaluation_scores": evaluation_scores, "performance_metrics" : performance_metrics_scores}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import re
-# import time
-# import logging
-# import numpy as np
-# from typing import Dict, Any, List, Union
-# from sentence_transformers import SentenceTransformer
-
-# from src.orchestration.agent_state import AgentState
-# from src.utils.save_state import save_state
-
-# # Import your previously created deterministic scoring functions
-# # (Ensure these functions are in your project path, e.g., src/evaluators/metrics.py)
-# from src.evaluation.metrics import (
-#     compute_retrieval_metrics,
-#     compute_boundary_health,
-#     compute_intra_chunk_coherence
-# )
-
-# logger = logging.getLogger("app")
-
-# # Initialize lightweight local embedding model once globally
-# local_embedder = SentenceTransformer("all-MiniLM-L6-v2")
-
-
-# def _clean_chunk_item(chunk_item: Union[str, dict]) -> dict:
-#     """
-#     Parses and cleans chunk representations whether they arrive as raw strings,
-#     repr strings (e.g. "page_content='...'"), or dictionaries.
-#     """
-#     if isinstance(chunk_item, dict):
-#         text = chunk_item.get("page_content", chunk_item.get("text", ""))
-#         chunk_id = chunk_item.get("chunk_id", None)
-#         return {"text": text, "chunk_id": chunk_id}
-
-#     if isinstance(chunk_item, str):
-#         raw_str = chunk_item.strip()
-#         # Clean string formats like: page_content='...' or page_content="..."
-#         if raw_str.startswith("page_content="):
-#             match = re.search(r"^page_content=['\"](.*)['\"]$", raw_str, re.DOTALL)
-#             if match:
-#                 raw_str = match.group(1)
-#             else:
-#                 raw_str = raw_str.replace("page_content=", "").strip("'\"")
-
-#         return {"text": raw_str, "chunk_id": None}
-
-#     return {"text": str(chunk_item), "chunk_id": None}
-
-
-# def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
-#     """
-#     LangGraph evaluator node that processes retrieved chunks per strategy from AgentState,
-#     executes zero-LLM deterministic checks, and returns aggregated evaluation scores.
-#     """
-#     retrieved_chunks_by_strategy = state.get("retrieved_chunks", {})
-#     vectorstores = state.get("vectorstore", {})
-
-#     if not retrieved_chunks_by_strategy:
-#         logger.warning("No retrieved chunks found in state for evaluation.")
-#         return {"evaluation_scores": {}}
-
-#     evaluation_scores = {}
-
-#     for strategy, query_items in retrieved_chunks_by_strategy.items():
-#         logger.info(f"EVALUATOR NODE: Evaluating strategy -> {strategy}")
-
-#         recall_list = []
-#         precision_list = []
-#         boundary_list = []
-#         coherence_list = []
-#         search_latency_list = []
-
-#         # Fetch FAISS index if available in state for this strategy
-#         faiss_index = None
-#         if strategy in vectorstores and hasattr(vectorstores[strategy], "index"):
-#             faiss_index = vectorstores[strategy].index
-
-#         for item in query_items:
-#             question = item.get("question", "")
-#             golden_target = item.get("answer", "")
-#             search_time = item.get("vector_db_search", 0.0)
-#             raw_chunks = item.get("retrieved_chunks", [])
-
-#             search_latency_list.append(search_time)
-
-#             # Parse and normalize chunks
-#             cleaned_chunks = [_clean_chunk_item(c) for c in raw_chunks]
-#             chunk_texts = [c["text"] for c in cleaned_chunks]
-
-#             # -----------------------------------------------------------------
-#             # 1. RETRIEVAL METRICS (Context Recall & Precision)
-#             # -----------------------------------------------------------------
-#             # Embed golden target context ONCE per question
-#             golden_vector = local_embedder.encode([golden_target]).reshape(1, -1)
-
-#             retrieval_res = compute_retrieval_metrics(
-#                 retrieved_chunks=cleaned_chunks,
-#                 golden_target=golden_target,
-#                 faiss_index=faiss_index,
-#                 golden_vector=golden_vector,
-#                 embedder=local_embedder
-#             )
-
-#             recall_list.append(retrieval_res["context_recall"])
-#             precision_list.append(retrieval_res["context_precision"])
-
-#             # -----------------------------------------------------------------
-#             # 2. BOUNDARY HEALTH (Structural Integrity)
-#             # -----------------------------------------------------------------
-#             boundary_score = compute_boundary_health(chunk_texts)
-#             boundary_list.append(boundary_score)
-
-#             # -----------------------------------------------------------------
-#             # 3. INTRA-CHUNK COHERENCE (Topic Unity)
-#             # -----------------------------------------------------------------
-#             coherence_score = compute_intra_chunk_coherence(
-#                 chunk_texts, 
-#                 embedder=local_embedder
-#             )
-#             coherence_list.append(coherence_score)
-
-#         # ---------------------------------------------------------------------
-#         # Aggregate mean metrics for the strategy
-#         # ---------------------------------------------------------------------
-#         evaluation_scores[strategy] = {
-#             "context_recall": round(float(np.mean(recall_list)), 3) if recall_list else 0.0,
-#             "context_precision": round(float(np.mean(precision_list)), 3) if precision_list else 0.0,
-#             "boundary_health": round(float(np.mean(boundary_list)), 3) if boundary_list else 0.0,
-#             "intra_chunk_coherence": round(float(np.mean(coherence_list)), 3) if coherence_list else 0.0,
-#             "avg_vector_search_latency_ms": round(float(np.mean(search_latency_list)) * 1000, 2) if search_latency_list else 0.0,
-#             "total_queries_evaluated": len(query_items)
-#         }
-
-#         logger.info(
-#             f"STRATEGY [{strategy}] RESULTS -> "
-#             f"Recall: {evaluation_scores[strategy]['context_recall']} | "
-#             f"Precision: {evaluation_scores[strategy]['context_precision']} | "
-#             f"Boundary: {evaluation_scores[strategy]['boundary_health']} | "
-#             f"Coherence: {evaluation_scores[strategy]['intra_chunk_coherence']}"
-#         )
-
-#     # Save state locally for debugging and persistence
-#     save_state(filename="evaluation_scores", data=evaluation_scores)
-#     logger.debug("Evaluation node completed successfully.")
-
-#     return {"evaluation_scores": evaluation_scores}
