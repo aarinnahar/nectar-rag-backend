@@ -1,15 +1,13 @@
 from src.config.settings import Settings
 from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.metrics.pairwise import cosine_similarity
-import spacy
 import numpy as np
 import re
 import html
 from bs4 import BeautifulSoup
 import logging
 
-# 1. IMPORT FASTEMBED (The ONNX Magic - Zero PyTorch!)
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+
 
 logger = logging.getLogger("app") 
 
@@ -36,6 +34,7 @@ def semantic_chunking_pro(texts, window_size=3, percentile=10):
     text = robust_clean(texts)
     
     # 1. Split sentences (Now lightning fast due to the stripped SpaCy pipeline)
+    import spacy
     doc = nlp(text)
     sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 5]
     
@@ -43,6 +42,7 @@ def semantic_chunking_pro(texts, window_size=3, percentile=10):
         return [" ".join(sentences)]
 
     # 2. LAZY LOAD: Initialize model here so it gets destroyed after chunking
+    
     from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
     embedding_model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5", threads=1)
     
