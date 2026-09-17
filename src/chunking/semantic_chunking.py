@@ -1,4 +1,5 @@
 from src.config.settings import Settings
+from src.embed_and_store.shared_embedder import get_shared_embedder
 from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -43,8 +44,7 @@ def semantic_chunking_pro(texts, window_size=3, percentile=10):
 
     # 2. LAZY LOAD: Initialize model here so it gets destroyed after chunking
     
-    from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
-    embedding_model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5", threads=1)
+    embedding_model = get_shared_embedder()
     
     # 3. Batch Embedding (Now utilizes the FastEmbed ONNX model)
     # Cast to a list first to ensure compatibility with LangChain's generator returns, then to numpy
