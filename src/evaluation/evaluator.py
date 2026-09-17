@@ -45,9 +45,7 @@ class FastEmbedWrapper:
         embeddings = list(self.model.embed(texts))
         return np.array(embeddings, dtype=np.float32)
 
-# Initialize the lightweight ONNX embedding model once globally
-local_embedder = FastEmbedWrapper("BAAI/bge-small-en-v1.5")
-# ==============================================================================
+
 
 
 def performance_metrics(strategy_name: str, raw_metrics: dict, latency: dict) -> dict:
