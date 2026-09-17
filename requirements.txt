@@ -1,5 +1,5 @@
 beautifulsoup4==4.15.0
-faiss==1.5.3
+faiss-cpu
 Jinja2==3.1.6
 langchain_community==0.4.2
 langchain_core==1.6.3
