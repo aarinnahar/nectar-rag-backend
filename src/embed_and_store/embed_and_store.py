@@ -65,7 +65,7 @@ async def embed_and_store(state: AgentState) -> dict:
     # 2. INSTANTIATE FASTEMBED DIRECTLY
     # This model is quantized to INT8, runs natively on CPU, and costs ~150MB RAM.
     logger.info("Loading lightweight FastEmbed ONNX runtime...")
-    model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+    model = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5",threads=1)
     
     # Safely get state variables
     ingestion_time = {**state.get('ingestion_time', {})}
