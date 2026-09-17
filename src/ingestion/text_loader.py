@@ -1,5 +1,6 @@
 from src.orchestration.agent_state import AgentState
 from src.utils.save_state import save_state, load_state
+from src.utils.release_memory import release_system_memory
 import os
 import io
 import time
@@ -99,6 +100,7 @@ def process_pdf_lightweight(file_path: str) -> str:
     
     # Extracts text and markdown tables instantly without PyTorch
     final_markdown = pymupdf4llm.to_markdown(file_path)
+    release_system_memory()
     
     conversion_time = time.time() - start_time
     print(f"\n{'='*50}\n🚀 DIGITAL PDF PARSED IN {conversion_time:.2f} SECONDS\n{'='*50}\n")
