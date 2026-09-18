@@ -9,7 +9,7 @@ def get_shared_embedder():
     if _SHARED_EMBEDDER is None:
         _SHARED_EMBEDDER = FastEmbedEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
-            threads=1,
-            batch_size=4
+            threads=2,
+            batch_size=32
         )
     return _SHARED_EMBEDDER
