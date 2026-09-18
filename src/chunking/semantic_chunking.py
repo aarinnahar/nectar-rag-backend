@@ -6,9 +6,7 @@ import html
 from bs4 import BeautifulSoup
 import logging
 from numpy.lib.stride_tricks import sliding_window_view
-from sklearn.metrics.pairwise import cosine_similarity
-
-from src.embed_and_store.shared_embedder import get_shared_embedder
+from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 
 logger = logging.getLogger("app") 
 
@@ -28,50 +26,56 @@ def robust_clean(raw_text):
     clean_text = re.sub(r'\s+', ' ', clean_text).strip()
     return clean_text
 
-def get_embeddings_in_batches(texts: list[str], batch_size: int = 32) -> np.ndarray:
-    """Processes embeddings in micro-chunks to prevent RAM spikes."""
-    embedder = get_shared_embedder()
-    all_embeddings = []
+def get_micro_embeddings(texts: list[str]) -> np.ndarray:
+    """Uses the 22MB micro-model strictly for boundary calculation."""
+    # 1. Initialize the ultra-fast micro model locally
+    micro_embedder = FastEmbedEmbeddings(
+        model_name="taylorai/bge-micro-v2", 
+        threads=2, 
+        batch_size=32
+    )
     
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i + batch_size]
-        # FastEmbed returns a generator, so we wrap it in list()
-        batch_vecs = list(embedder.embed_documents(batch))
+    all_embeddings = []
+    for i in range(0, len(texts), 32):
+        batch = texts[i:i + 32]
+        batch_vecs = list(micro_embedder.embed_documents(batch))
         all_embeddings.extend(batch_vecs)
         
+    # 2. Destroy the micro model from RAM immediately to free space
+    del micro_embedder
     release_system_memory()
+    
     return np.array(all_embeddings, dtype=np.float32)
 
 def semantic_chunking_pro(texts, window_size=3, percentile=10):
     text = robust_clean(texts)
     
-    # 1. PURE PYTHON REGEX SPLITTING (Saves ~100MB of RAM by removing SpaCy)
-    # Splits on standard punctuation (. ! ?) followed by whitespace and a capital letter
     raw_sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
     sentences = [s.strip() for s in raw_sentences if len(s.strip()) > 5]
     
     if len(sentences) < window_size:
         return [" ".join(sentences)]
 
-    # 2. Batch Embedding
-    vectors = get_embeddings_in_batches(sentences, batch_size=32)
+    # Use the isolated micro-model instead of the shared embedder
+    vectors = get_micro_embeddings(sentences)
 
-    # 3. Sliding Window Means 
     windows = sliding_window_view(vectors, window_shape=(window_size,), axis=0)
     mean_vectors = windows.mean(axis=1)
 
-    # 4. Vectorized Cosine Similarity
-    sim_matrix = cosine_similarity(mean_vectors)
-    similarities = np.diagonal(sim_matrix, offset=1)
+    # 3. HIGH-SPEED VECTOR MATH (Eliminates Sklearn bottleneck)
+    # Normalize vectors
+    norms = np.linalg.norm(mean_vectors, axis=1, keepdims=True)
+    norms[norms == 0] = 1e-10
+    normed_vectors = mean_vectors / norms
+    
+    # Calculate dot product only for adjacent windows
+    similarities = np.sum(normed_vectors[:-1] * normed_vectors[1:], axis=1)
 
-    # 5. Thresholding
     threshold = np.percentile(similarities, percentile)
     
-    # 6. Find Breakpoints
     offset = window_size // 2
     breakpoints = [i + offset for i, s in enumerate(similarities) if s <= threshold]
 
-    # 7. Slicing
     chunks = []
     start_idx = 0
     for bp in breakpoints:
@@ -80,9 +84,8 @@ def semantic_chunking_pro(texts, window_size=3, percentile=10):
     
     chunks.append(" ".join(sentences[start_idx:]))
     
-    # Cleanup
-    del vectors
-    del sim_matrix
+    # Aggressive cleanup
+    del vectors, mean_vectors, normed_vectors, similarities
     release_system_memory()
     
     return chunks
