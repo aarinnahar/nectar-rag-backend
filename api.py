@@ -185,8 +185,7 @@ async def evaluate_document(
     # ---------------------------------------------------------
     # 7. Trigger LangGraph Orchestrator
     # ---------------------------------------------------------
-   try:
-        # AWAIT the async LangGraph execution
+    try:
         final_html_report = await run_evaluator(agent_state_input) 
         return final_html_report
     except Exception as e:
