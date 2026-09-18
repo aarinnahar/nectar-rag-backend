@@ -59,9 +59,14 @@ def result_report_designer(state: AgentState):
     middle = strategies_ranked[2]
     loser = strategies_ranked[3]
 
-    path = Path(r"C:\Users\RIYA\Downloads\chunk_updated\src\report_design\report_template.html")
-    path1 = Path(r"C:\Users\RIYA\Downloads\chunk_updated\src\report_design\scatterplot.html")
-    path2 = Path(r"C:\Users\RIYA\Downloads\chunk_updated\src\report_design\bargraph.html")
+    from pathlib import Path
+
+    # Dynamically finds the folder where this Python script lives
+    ROOT_DIR = Path(__file__).resolve().parent.parent
+    
+    path = ROOT_DIR / "report_design" / "report_template.html"
+    path1 = ROOT_DIR / "report_design" / "scatterplot.html"
+    path2 = ROOT_DIR / "report_design" / "bargraph.html"
 
     # 1. Setup the environment to look in the current folder
     file_loader = FileSystemLoader(path.parent)
