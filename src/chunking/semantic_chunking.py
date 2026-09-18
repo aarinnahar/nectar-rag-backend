@@ -30,7 +30,7 @@ def get_micro_embeddings(texts: list[str]) -> np.ndarray:
     """Uses the 22MB micro-model strictly for boundary calculation."""
     # 1. Initialize the ultra-fast micro model locally
     micro_embedder = FastEmbedEmbeddings(
-        model_name="taylorai/bge-micro-v2", 
+        model_name="sentence-transformers/all-MiniLM-L6-v2", 
         threads=2, 
         batch_size=32
     )
