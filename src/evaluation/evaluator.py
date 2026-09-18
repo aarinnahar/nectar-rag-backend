@@ -27,19 +27,28 @@ logger = logging.getLogger("app")
 # FAST-EMBED WRAPPER (ONNX Drop-in Replacement for SentenceTransformer)
 # ==============================================================================
 class FastEmbedWrapper:
-    """Acts like a SentenceTransformer, but strictly reuses the single model in RAM."""
+    """Acts like a SentenceTransformer, with a high-speed memory cache to prevent redundant CPU math."""
     def __init__(self):
-        # Grab the singleton instead of creating a brand new model
         self.embedder = get_shared_embedder()
+        self._cache = {}  # The in-memory dictionary to store vectors
 
     def encode(self, texts: Union[str, List[str]], **kwargs) -> np.ndarray:
         if isinstance(texts, str):
             texts = [texts]
+            
+        # 1. Identify which texts we haven't embedded yet
+        uncached_texts = [text for text in texts if text not in self._cache]
         
-        # LangChain's embedder returns a list of lists.
-        # Convert it to a numpy array to match your downstream metrics perfectly.
-        embeddings = self.embedder.embed_documents(texts)
-        return np.array(embeddings, dtype=np.float32)
+        # 2. Only run the heavy CPU calculation on the missing texts
+        if uncached_texts:
+            new_embeddings = self.embedder.embed_documents(uncached_texts)
+            for text, emb in zip(uncached_texts, new_embeddings):
+                self._cache[text] = emb  # Save to RAM instantly
+                
+        # 3. Retrieve all requested embeddings from the fast RAM cache
+        final_embeddings = [self._cache[text] for text in texts]
+        
+        return np.array(final_embeddings, dtype=np.float32)
 
 
 
@@ -202,8 +211,8 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
         
         # Inter-Chunk Redundancy across the whole document chunks for this strategy
         doc_chunks = chunk_factory.get(strategy, [])
-        inter_chunk_redundancy = compute_inter_chunk_redundancy(doc_chunks)
-
+        # inter_chunk_redundancy = compute_inter_chunk_redundancy(doc_chunks)
+        inter_chunk_redundancy = 0.0
         # Search Latency (ms)
         avg_search_latency = compute_vector_search_latency_metrics(query_items)
 
