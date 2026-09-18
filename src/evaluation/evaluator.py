@@ -115,9 +115,12 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
 
     evaluation_scores = {}
 
+    total_time = {}
     for strategy, query_items in retrieved_chunks_by_strategy.items():
         logger.info(f"EVALUATOR NODE: Evaluating strategy -> {strategy}")
 
+        
+        start_time = time.time()
         recall_list = []
         precision_list = []
         hit_rate_list = []
@@ -230,6 +233,9 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
         final_score_pct = grade_result.get("overall_index_score_pct", 0.0)
         letter_grade = grade_result.get("system_grade", "F")
 
+        end_time = time.time()
+        total = end_time - start_time
+        
         # ---------------------------------------------------------------------
         # Assemble Final Dictionary Structure per Strategy
         # ---------------------------------------------------------------------
@@ -246,6 +252,7 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
             "projected_cost_per_1k_queries": projected_cost_per_1k,
             "overall_index_score": final_score_pct,
             "system_grade": letter_grade,
+            "total_evaluation_time" : total,
             "total_queries_evaluated": len(query_items)
         }
 
