@@ -6,7 +6,7 @@ import asyncio # Parallel execution kept intact!
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_community.docstore import InMemoryDocstore
-
+import gc
 from src.embed_and_store.shared_embedder import get_shared_embedder
 
 # Removed the old PyTorch-heavy embedding_model factory
