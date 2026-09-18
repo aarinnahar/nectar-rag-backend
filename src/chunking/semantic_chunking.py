@@ -28,7 +28,7 @@ def robust_clean(raw_text):
     clean_text = re.sub(r'\s+', ' ', clean_text).strip()
     return clean_text
 
-def get_embeddings_in_batches(texts: list[str], batch_size: int = 4) -> np.ndarray:
+def get_embeddings_in_batches(texts: list[str], batch_size: int = 32) -> np.ndarray:
     """Processes embeddings in micro-chunks to prevent RAM spikes."""
     embedder = get_shared_embedder()
     all_embeddings = []
