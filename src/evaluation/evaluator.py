@@ -211,8 +211,8 @@ def evaluate_retrieved_chunks(state: AgentState) -> Dict[str, Any]:
         
         # Inter-Chunk Redundancy across the whole document chunks for this strategy
         doc_chunks = chunk_factory.get(strategy, [])
-        # inter_chunk_redundancy = compute_inter_chunk_redundancy(doc_chunks)
-        inter_chunk_redundancy = 0.0
+        inter_chunk_redundancy = compute_inter_chunk_redundancy(doc_chunks)
+        
         # Search Latency (ms)
         avg_search_latency = compute_vector_search_latency_metrics(query_items)
 
