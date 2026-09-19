@@ -60,9 +60,6 @@ async def evaluate_document(
     model_choice: str = Form(..., description="The specific LLM model choice"),
     api_key: str = Form(..., description="API Key for the LLM"),
     api_url: str = Form(..., description="API URL for the LLM"),
-    embed_provider: str = Form(..., description="The embedding model provider"),
-    embed_api_url: str = Form(..., description="API URL for the embedding model"),
-    embed_model_choice: str = Form(..., description="The specific embedding model choice"),
     chunk_size: int = Form(..., description="The chunk size for text splitting"),
     chunk_overlap: int = Form(..., description="The chunk overlap for text splitting")
 ):
@@ -172,9 +169,6 @@ async def evaluate_document(
         "model_choice": model_choice,
         "api_key": api_key,
         "api_url": api_url,
-        "embed_provider": embed_provider,
-        "embed_api_url": embed_api_url,
-        "embed_model_choice": embed_model_choice,
         "file_path": str(doc_path),
         "golden_dataset": parsed_dataset,  # Sending the parsed JSON data directly
         "chunk_size": chunk_size,
