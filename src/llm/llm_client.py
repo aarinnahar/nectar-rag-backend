@@ -8,13 +8,13 @@ load_dotenv()
 
 def get_llm(provider, model_choice, api_key, api_url = ""):
     # Initialize the LLM based on user selection
-    if provider == "OpenAI":
+    if provider.lower() == "openai":
         llm = ChatOpenAI(model=model_choice, api_key=api_key)
 
-    elif provider == "Groq":
+    elif provider.lower() == "groq":
         llm = ChatGroq(model=model_choice, api_key=api_key)
 
-    elif provider == "Ollama (Local)":
+    elif provider.lower() == "ollama (local)":
         # Connects directly to their local machine
         llm = ChatOllama(model=model_choice, base_url=api_url)
 
