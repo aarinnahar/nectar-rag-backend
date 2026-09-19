@@ -49,12 +49,9 @@ graph.add_edge("result_report_designer", END)
 workflow = graph.compile()
 
 
-async def run_evaluator(state_input: dict):
-    # Initialize and compile the LangGraph workflow
-    app = graph.compile()
-    
-    # Invoke the graph directly using the dictionary from the API
-    final_state = await app.ainvoke(state_input)
-    
-    return final_state
+# Change this function in graph_builder.py
+async def run_evaluator(agent_state_input: dict):
+    # Yields a dictionary mapping the node name to its state output
+    async for chunk in app.astream(agent_state_input, stream_mode="updates"):
+        yield chunk
 
