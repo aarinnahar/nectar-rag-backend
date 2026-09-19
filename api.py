@@ -184,3 +184,24 @@ async def evaluate_document(
         return final_html_report
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Evaluation failed: {str(e)}")
+
+
+
+    # 1. Dynamically find the report relative to api.py
+    base_dir = Path(__file__).resolve().parent
+    
+    # 2. Add the sub-folders where you know it saves
+    report_path = base_dir / "chunking_test" / "chunking_report.html" 
+    
+    # 3. Read it safely
+    if report_path.exists():
+        with open(report_path, "r", encoding="utf-8") as f:
+            html_string = f.read()
+    else:
+        html_string = "<h1>Report not found on server</h1>"
+
+    return {
+        "status": "success",
+        "metrics": final_metrics,
+        "report_html": html_string
+    }
