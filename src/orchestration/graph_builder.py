@@ -56,5 +56,5 @@ async def run_evaluator(state_input: dict):
     # Invoke the graph directly using the dictionary from the API
     final_state = await app.ainvoke(state_input)
     
-    return final_state["html_report"]
+    return final_state
 
