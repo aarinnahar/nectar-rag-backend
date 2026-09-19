@@ -179,29 +179,28 @@ async def evaluate_document(
     # ---------------------------------------------------------
     # 7. Trigger LangGraph Orchestrator
     # ---------------------------------------------------------
+
     try:
-        final_html_report = await run_evaluator(agent_state_input) 
-        return final_html_report
+        # We wait for the pipeline to finish running, but DO NOT return yet!
+        await run_evaluator(agent_state_input) 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Evaluation failed: {str(e)}")
 
-
-
-    # 1. Dynamically find the report relative to api.py
-    base_dir = Path(__file__).resolve().parent
+    # ---------------------------------------------------------
+    # 8. Read the Generated Report & Send to React
+    # ---------------------------------------------------------
+    # Point directly to the relative cloud-safe folder we set in the generator
+    report_path = Path("output/reports/chunking_report.html") 
     
-    # 2. Add the sub-folders where you know it saves
-    report_path = base_dir / "chunking_test" / "chunking_report.html" 
-    
-    # 3. Read it safely
     if report_path.exists():
         with open(report_path, "r", encoding="utf-8") as f:
             html_string = f.read()
     else:
-        html_string = "<h1>Report not found on server</h1>"
+        # If it fails to find it, send an error HTML so React doesn't crash
+        html_string = f"<h1>Error: Report not found at {report_path.resolve()}</h1>"
 
+    # Return a JSON dictionary so React can extract data.report_html
     return {
         "status": "success",
-        "metrics": final_metrics,
         "report_html": html_string
     }
