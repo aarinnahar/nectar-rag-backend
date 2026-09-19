@@ -50,7 +50,6 @@ def result_report_designer(state: AgentState):
         
     golden_dataset = state["golden_dataset"]
     gd_len = len(golden_dataset)
-    embed_model_name = state['embed_model_choice']
     extracted_name = state['model_choice']
     
     
@@ -99,8 +98,7 @@ def result_report_designer(state: AgentState):
         "chunk_size": state['chunk_size'],
         "chunk_overlap": state['chunk_overlap'],
         "evaluation_baseline": f"Golden Dataset ({gd_len} Test Queries)",
-        "target_llm": extracted_name,
-        "embedding_model": embed_model_name,
+        "target_llm": extracted_name
 
         # ================================
         # 1. SUMMARY REPORT TAB
