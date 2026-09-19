@@ -52,6 +52,6 @@ workflow = graph.compile()
 # Change this function in graph_builder.py
 async def run_evaluator(agent_state_input: dict):
     # Yields a dictionary mapping the node name to its state output
-    async for chunk in graph.astream(agent_state_input, stream_mode="updates"):
+    async for chunk in workflow.astream(agent_state_input, stream_mode="updates"):
         yield chunk
 
