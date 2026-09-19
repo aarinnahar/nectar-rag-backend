@@ -49,7 +49,7 @@ def get_office_page_count(content: bytes, ext: str) -> int:
     return 0
 
 
-@app.post("/evaluate", response_class=HTMLResponse)
+@app.post("/evaluate")
 async def evaluate_document(
     # 1. File Inputs
     file: UploadFile = File(..., description="Upload the PDF, DOCX, or PPTX document"),
