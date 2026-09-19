@@ -177,30 +177,31 @@ async def evaluate_document(
     }
         
     # ---------------------------------------------------------
-    # 7. Trigger LangGraph Orchestrator
+    # 7 & 8. Stream LangGraph execution & Read Report
     # ---------------------------------------------------------
+    async def event_generator():
+        try:
+            # 1. Stream the nodes as they execute in LangGraph
+            async for chunk in run_evaluator(agent_state_input):
+                # 'chunk' keys contain the names of the nodes that just finished
+                for node_name in chunk.keys():
+                    yield f"data: {json.dumps({'node': node_name})}\n\n"
+            
+            # 2. Pipeline finished! Now read the saved HTML report from disk
+            report_path = Path("output/reports/chunking_report.html")
+            if not report_path.exists():
+                report_path = Path("chunking_report.html") # Fallback
 
-    try:
-        # We wait for the pipeline to finish running, but DO NOT return yet!
-        await run_evaluator(agent_state_input) 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Evaluation failed: {str(e)}")
+            if report_path.exists():
+                with open(report_path, "r", encoding="utf-8") as f:
+                    html_string = f.read()
+                # 3. Send the final report and tell React to close the modal
+                yield f"data: {json.dumps({'status': 'completed', 'report_html': html_string})}\n\n"
+            else:
+                yield f"data: {json.dumps({'error': 'Report not found on disk'})}\n\n"
+                
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    # ---------------------------------------------------------
-    # 8. Read the Generated Report & Send to React
-    # ---------------------------------------------------------
-    # Point directly to the relative cloud-safe folder we set in the generator
-    report_path = Path("output/reports/chunking_report.html") 
-    
-    if report_path.exists():
-        with open(report_path, "r", encoding="utf-8") as f:
-            html_string = f.read()
-    else:
-        # If it fails to find it, send an error HTML so React doesn't crash
-        html_string = f"<h1>Error: Report not found at {report_path.resolve()}</h1>"
-
-    # Return a JSON dictionary so React can extract data.report_html
-    return {
-        "status": "success",
-        "report_html": html_string
-    }
+    # Return the generator as an active HTTP stream
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
