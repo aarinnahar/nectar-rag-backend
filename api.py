@@ -1,5 +1,8 @@
 import os
 import json
+import uuid
+import shutil
+import asyncio
 
 # MUST BE AT THE VERY TOP: Locks memory allocation to prevent OOM crashes
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -28,6 +31,10 @@ app.add_middleware(
     allow_methods=["POST"],
     allow_headers=["*"],
 )
+
+# --- THE GLOBAL CPU LOCK ---
+# This ensures only one heavy evaluation runs at a time to protect the 1GB AWS server
+evaluation_lock = asyncio.Lock()
 
 def get_office_page_count(content: bytes, ext: str) -> int:
     """Extracts page/slide counts from DOCX and PPTX metadata without rendering."""
@@ -139,13 +146,14 @@ async def evaluate_document(
         )
 
     # ---------------------------------------------------------
-    # 5. Save Both Files to Cloud-Safe Directory
+    # 5. UUID Sandboxing: Save Files to an Isolated Directory
     # ---------------------------------------------------------
-    save_dir = Path("output/uploads")
-    save_dir.mkdir(parents=True, exist_ok=True)
+    run_id = str(uuid.uuid4())
+    run_dir = Path(f"output/runs/{run_id}")
+    run_dir.mkdir(parents=True, exist_ok=True)
     
-    doc_path = save_dir / filename
-    dataset_path = save_dir / dataset_filename
+    doc_path = run_dir / filename
+    dataset_path = run_dir / dataset_filename
     
     with open(doc_path, "wb") as f:
         f.write(doc_content)
@@ -156,14 +164,15 @@ async def evaluate_document(
     # ---------------------------------------------------------
     # 6. Package the LangGraph State Dictionary
     # ---------------------------------------------------------
-    # Maps the validated API inputs exactly to your workflow requirements
     agent_state_input = {
+        "run_id": run_id,                  # Pass unique ID to graph
+        "output_dir": str(run_dir),        # Pass unique isolated directory
         "provider": provider,
         "model_choice": model_choice,
         "api_key": api_key,
         "api_url": api_url,
-        "file_path": str(doc_path),
-        "golden_dataset": parsed_dataset,  # Sending the parsed JSON data directly
+        "file_path": str(doc_path),        # Isolated file path
+        "golden_dataset": parsed_dataset, 
         "chunk_size": chunk_size,
         "chunk_overlap": chunk_overlap,
         "file_name": filename
@@ -174,27 +183,41 @@ async def evaluate_document(
     # ---------------------------------------------------------
     async def event_generator():
         try:
-            # 1. Stream the nodes as they execute in LangGraph
-            async for chunk in run_evaluator(agent_state_input):
-                # 'chunk' keys contain the names of the nodes that just finished
-                for node_name in chunk.keys():
-                    yield f"data: {json.dumps({'node': node_name})}\n\n"
-            
-            # 2. Pipeline finished! Now read the saved HTML report from disk
-            report_path = Path("output/reports/chunking_report.html")
-            if not report_path.exists():
-                report_path = Path("chunking_report.html") # Fallback
+            # Let the frontend know if they are waiting in the queue
+            if evaluation_lock.locked():
+                yield f"data: {json.dumps({'node': 'Waiting in Queue...'})}\n\n"
 
-            if report_path.exists():
-                with open(report_path, "r", encoding="utf-8") as f:
-                    html_string = f.read()
-                # 3. Send the final report and tell React to close the modal
-                yield f"data: {json.dumps({'status': 'completed', 'report_html': html_string})}\n\n"
-            else:
-                yield f"data: {json.dumps({'error': 'Report not found on disk'})}\n\n"
+            # 1. ACQUIRE LOCK: Only one user enters this block at a time
+            async with evaluation_lock:
+                
+                # Stream the nodes as they execute in LangGraph
+                async for chunk in run_evaluator(agent_state_input):
+                    for node_name in chunk.keys():
+                        yield f"data: {json.dumps({'node': node_name})}\n\n"
+            
+                # 2. Pipeline finished! Read report safely.
+                # Check the isolated directory first. If LangGraph is still saving globally, fallback.
+                report_path = run_dir / "chunking_report.html"
+                if not report_path.exists():
+                    report_path = Path("output/reports/chunking_report.html")
+                if not report_path.exists():
+                    report_path = Path("chunking_report.html")
+
+                if report_path.exists():
+                    with open(report_path, "r", encoding="utf-8") as f:
+                        html_string = f.read()
+                    # Send the final report and close modal
+                    yield f"data: {json.dumps({'status': 'completed', 'report_html': html_string})}\n\n"
+                else:
+                    yield f"data: {json.dumps({'error': 'Report not found on disk'})}\n\n"
                 
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            
+        finally:
+            # 3. GARBAGE COLLECTION: Delete the user's files and directory immediately
+            if run_dir.exists():
+                shutil.rmtree(run_dir, ignore_errors=True)
 
     # Return the generator as an active HTTP stream
     return StreamingResponse(event_generator(), media_type="text/event-stream")
