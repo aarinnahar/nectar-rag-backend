@@ -132,17 +132,10 @@ async def evaluate_document(
                 raise ValueError(f"The 'query' and 'answer' values at index {idx} must be text strings.")
                 
     except Exception as e:
-        sample_format = """[
-  {
-    "query": "What first made Ravi realize his water pot might be special after the old man left?",
-    "answer": "Ravi realized the pot was special when he tilted it to get a final drop...",
-    "doc_id": "docA.pdf",
-    "meta": { "page": 1 }
-  }
-]"""
+        sample_format = """"""
         raise HTTPException(
             status_code=400, 
-            detail=f"The JSON format you uploaded is not supported. Error: {str(e)}\n\nPlease see the sample JSON for the correct format:\n{sample_format}"
+            detail=f"The JSON format you uploaded is not supported. Error: {str(e)}\n\nPlease see the sample JSON for the correct format\n{sample_format}"
         )
 
     # ---------------------------------------------------------
