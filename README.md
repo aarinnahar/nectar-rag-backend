@@ -73,5 +73,5 @@ The pipeline dynamically generates a downloadable HTML evaluation report trackin
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/aarin/nectar-rag.git](https://github.com/aarin/nectar-rag.git)
+git clone https://github.com/aarinnahar/nectar-rag-backend.git
 cd nectar-rag
