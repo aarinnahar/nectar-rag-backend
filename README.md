@@ -31,11 +31,14 @@ Most developers guess their RAG hyperparameters. Nectar RAG eliminates the guess
 ---
 
 ## 📸 Output & Diagnostics
-<img width="1553" height="694" alt="metrics1" src="https://github.com/user-attachments/assets/da67d9f7-0bf1-49f5-9c5e-25f4224922ed" />
+<img width="1553" height="496" alt="metrics1" src="https://github.com/user-attachments/assets/e2873306-19cd-4b2d-9df4-af82c797a19b" />
 
-<img width="1582" height="720" alt="metrics2" src="https://github.com/user-attachments/assets/9b37f2e8-d270-480a-b4a0-39803a3297a5" />
 
-<img width="1513" height="784" alt="deepdive3" src="https://github.com/user-attachments/assets/08e67ccd-107b-481b-9deb-fb39a10bb370" />
+<img width="1582" height="520" alt="metrics2" src="https://github.com/user-attachments/assets/9ea9dbd4-d420-4bb6-9d9a-6aa59332e526" />
+
+
+<img width="1513" height="590" alt="deepdive3" src="https://github.com/user-attachments/assets/c49d51ad-79f0-4e2f-9d6a-acba6dc9a199" />
+
 
 <!-- 📸 PLACEHOLDER: Insert a screenshot of the generated chunking_report.html showing the metrics and tables -->
 
