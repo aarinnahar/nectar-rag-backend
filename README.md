@@ -7,7 +7,7 @@
   **A production-grade, zero-cost retrieval-augmented generation (RAG) diagnostic engine.**  
   Quantify chunking strategies, track precision-recall drift, and test multi-agent architectures using local vector indices.
 
-  [![Live Demo](https://nectar-rag.vercel.app/)
+  [![Live Demo](https://img.shields.io/badge/Live_Demo-nectar-rag.vercel.app-000000?style=for-the-badge&logo=vercel)](https://nectar-rag.vercel.app/)
   [![Video Demo](https://img.shields.io/badge/Video_Demo-Watch_on_LinkedIn-0A66C2?style=for-the-badge&logo=linkedin)](YOUR_LINKEDIN_VIDEO_LINK_HERE)
 
   ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
