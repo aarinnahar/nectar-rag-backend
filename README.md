@@ -31,9 +31,13 @@ Most developers guess their RAG hyperparameters. Nectar RAG eliminates the guess
 ---
 
 ## 📸 Output & Diagnostics
+<img width="1553" height="694" alt="metrics1" src="https://github.com/user-attachments/assets/da67d9f7-0bf1-49f5-9c5e-25f4224922ed" />
+
+<img width="1582" height="720" alt="metrics2" src="https://github.com/user-attachments/assets/9b37f2e8-d270-480a-b4a0-39803a3297a5" />
+
+<img width="1513" height="784" alt="deepdive3" src="https://github.com/user-attachments/assets/08e67ccd-107b-481b-9deb-fb39a10bb370" />
 
 <!-- 📸 PLACEHOLDER: Insert a screenshot of the generated chunking_report.html showing the metrics and tables -->
-![Nectar HTML Evaluation Report](docs/nectar-report-preview.png)
 
 The pipeline dynamically generates a downloadable HTML evaluation report tracking:
 *   Total execution latency and chunk volume.
